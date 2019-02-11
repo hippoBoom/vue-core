@@ -87,7 +87,8 @@ Vue 初始化主要就干了几件事情，合并配置，初始化生命周期�
 
 <h4 id="211">为什么可以访问到 data 中的数据</h4>
 
-##### initState函数
+##### initState 函数
+
 最先执行 initState 初始化，从`$options`中拿到 data 调用 initData 函数
 
 ```js
@@ -109,7 +110,9 @@ export function initState(vm: Component) {
   }
 }
 ```
-##### initData函数
+
+##### initData 函数
+
 先在`$options`中拿到 data 同时赋给`_data`，然后对比 data/props/methods 中是否有重复命名 --> 如果有抛出警告 ：没有调用代理对象函数`proxy(vm,'_data', key)`
 
 ```js
@@ -199,12 +202,16 @@ Vue 中我们是通过 `$mount` 实例方法去挂载 `vm` 的，`$mount` 方法
 `compiler` 版本的 `$mount` 实现非常有意思，先来看一下 `src/platform/web/entry-runtime-with-compiler.js` 文件中定义：
 
 ```js
+// 缓存了mount
 const mount = Vue.prototype.$mount;
+// 然后重新创建
 Vue.prototype.$mount = function(
+  // 对el处理 el可以是字符串或是Element
   el?: string | Element,
   hydrating?: boolean
 ): Component {
   el = el && query(el);
+  // el已经被转为Dom对象
 
   /* istanbul ignore if */
   if (el === document.body || el === document.documentElement) {
@@ -275,6 +282,25 @@ Vue.prototype.$mount = function(
 这段代码首先缓存了原型上的 `$mount` 方法，再重新定义该方法，我们先来分析这段代码。首先，它对 `el` 做了限制，Vue 不能挂载在 `body`、`html` 这样的根节点上。接下来的是很关键的逻辑 —— 如果没有定义 `render` 方法，则会把 `el` 或者 `template` 字符串转换成 `render` 方法。这里我们要牢记，在 Vue 2.0 版本中，所有 Vue 的组件的渲染最终都需要 `render` 方法，无论我们是用单文件 .vue 方式开发组件，还是写了 `el` 或者 `template` 属性，最终都会转换成 `render` 方法，那么这个过程是 Vue 的一个“在线编译”的过程，它是调用 `compileToFunctions` 方法实现的，编译过程我们之后会介绍。最后，调用原先原型上的 `$mount` 方法挂载。
 
 原先原型上的 `$mount` 方法在 `src/platform/web/runtime/index.js` 中定义，之所以这么设计完全是为了复用，因为它是可以被 `runtime only` 版本的 Vue 直接使用的。
+
+##### query 函数
+
+```js
+// 位置 ./util/index.js
+export function query(el: string | Element): Element {
+  if (typeof el === "string") {
+    const selected = document.querySelector(el);
+    if (!selected) {
+      process.env.NODE_ENV !== "production" &&
+        warn("Cannot find element: " + el);
+      return document.createElement("div");
+    }
+    return selected;
+  } else {
+    return el;
+  }
+}
+```
 
 ```js
 // public mount method
