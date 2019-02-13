@@ -2,12 +2,19 @@
 
 - Object.defineProperty
 
+##### 笔记提示
+
+- callHook 函数生命周期之后章节介绍
+- performance/mark 性能埋点可以忽略
+- new Watcher 渲染 Watcher 和响应式原理强相关的一个类，即观察者模式
+
 # 目录
 
 - 数据驱动
   - [初始化 Vue](#21)
     - [为什么可以访问到 data 中的数据](#211)
   - [vue 挂载的实现](#22)
+- 深入响应式原理
 
 <h4 id="21">初始化vue</h4>
 
@@ -195,7 +202,7 @@ Vue 的初始化逻辑写的非常清楚，把不同的功能逻辑拆成一些�
 
 由于我们这一章的目标是弄清楚模板和数据如何渲染成最终的 DOM，所以各种初始化逻辑我们先不看。在初始化的最后，检测到如果有 `el` 属性，则调用 `vm.$mount` 方法挂载 `vm`，挂载的目标就是把模板渲染成最终的 DOM，那么接下来我们来分析 Vue 的挂载过程。
 
-<h4 id="22">Vue 实例挂载的实现</h4>
+<h4 id="22">Vue实例挂载的实现</h4>
 
 Vue 中我们是通过 `$mount` 实例方法去挂载 `vm` 的，`$mount` 方法在多个文件中都有定义，如 `src/platform/web/entry-runtime-with-compiler.js`、`src/platform/web/runtime/index.js`、`src/platform/weex/runtime/index.js`。因为 `$mount` 这个方法的实现是和平台、构建方式都相关的。接下来我们重点分析带 `compiler` 版本的 `$mount` 实现，因为抛开 webpack 的 vue-loader，我们在纯前端浏览器环境分析 Vue 的工作原理，有助于我们对原理理解的深入。
 
